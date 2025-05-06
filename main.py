@@ -4,7 +4,7 @@ from models.ClientModel import ClientModel
 from routers.ClientRouters import client_blueprint
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///vital.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@localhost/vitalconnection'
 db.init_app(app)
 
 # Register the blueprint
