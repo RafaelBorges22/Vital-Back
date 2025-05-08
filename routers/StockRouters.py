@@ -6,7 +6,7 @@ from datetime import datetime
 
 stock_blueprint = Blueprint('stock', __name__)
 
-@stock_blueprint.route('/stock', methods=['GET'])
+@stock_blueprint.route('/', methods=['GET'])
 def read_stocks():
     try:
         stocks = StockModel.query.all()
@@ -34,7 +34,7 @@ def read_stocks():
             "error": str(e)
         }), 500
 
-@stock_blueprint.route('/stock', methods=['POST'])
+@stock_blueprint.route('/', methods=['POST'])
 def create_stock():
     data = request.get_json()
     try:
@@ -62,7 +62,7 @@ def create_stock():
             "error": str(e)
         }), 400
 
-@stock_blueprint.route('/stock/<int:id>', methods=['GET'])
+@stock_blueprint.route('/<int:id>', methods=['GET'])
 def get_stock(id):
     try:
         stock = StockModel.query.get_or_404(id)
@@ -90,7 +90,7 @@ def get_stock(id):
             "error": str(e)
         }), 404 if "404" in str(e) else 500
 
-@stock_blueprint.route('/stock/<int:id>', methods=['PUT', 'PATCH'])
+@stock_blueprint.route('/<int:id>', methods=['PUT', 'PATCH'])
 def update_stock(id):
     try:
         stock = StockModel.query.get_or_404(id)
@@ -116,7 +116,7 @@ def update_stock(id):
             "error": str(e)
         }), 400
 
-@stock_blueprint.route('/stock/<int:id>', methods=['DELETE'])
+@stock_blueprint.route('/<int:id>', methods=['DELETE'])
 def delete_stock(id):
     try:
         stock = StockModel.query.get_or_404(id)

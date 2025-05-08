@@ -5,7 +5,7 @@ from database.db import db
 
 product_blueprint = Blueprint('products', __name__)
 
-@product_blueprint.route('/products', methods=['GET'])
+@product_blueprint.route('/', methods=['GET'])
 def read_products():
     products = ProductModel.query.all()
     product_list = []
@@ -28,7 +28,7 @@ def read_products():
     
     return jsonify({"message": "Product list retrieved successfully", "products": product_list}), 200
 
-@product_blueprint.route('/products', methods=['POST'])
+@product_blueprint.route('/', methods=['POST'])
 def create_product():
     data = request.get_json()
     try:
@@ -55,7 +55,7 @@ def create_product():
     except KeyError as e:
         return jsonify({"error": f"Missing field: {str(e)}"}), 400
 
-@product_blueprint.route('/products/<int:id>', methods=['GET'])
+@product_blueprint.route('/<int:id>', methods=['GET'])
 def get_product(id):
     product = ProductModel.query.get(id)
     if not product:
@@ -77,7 +77,7 @@ def get_product(id):
         }
     return jsonify({"product": product_data}), 200
 
-@product_blueprint.route('/products/<int:id>', methods=['PUT'])
+@product_blueprint.route('/<int:id>', methods=['PUT'])
 def update_product(id):
     product = ProductModel.query.get(id)
     if not product:
@@ -98,7 +98,7 @@ def update_product(id):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@product_blueprint.route('/products/<int:id>', methods=['DELETE'])
+@product_blueprint.route('/<int:id>', methods=['DELETE'])
 def delete_product(id):
     product = ProductModel.query.get(id)
     if not product:
