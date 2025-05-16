@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from models.ProductModel import ProductModel
 from models.StockModel import StockModel
 from database.db import db
-
+from enums.ProductEnum import ProductEnum
 product_blueprint = Blueprint('products', __name__)
 
 @product_blueprint.route('/', methods=['GET'])
@@ -16,7 +16,8 @@ def read_products():
             'description': product.description,
             'price': product.price,
             'image': product.image,
-            'quantity': product.quantity
+            'quantity': product.quantity,
+            'stock_level': ProductEnum.from_quantity(product.quantity)
         }
         if product.stock:
             product_data['stock'] = {
@@ -67,7 +68,8 @@ def get_product(id):
         'description': product.description,
         'price': product.price,
         'image': product.image,
-        'quantity': product.quantity
+        'quantity': product.quantity,
+        'stock_level': ProductEnum.from_quantity(product.quantity)
     }
     if product.stock:
         product_data['stock'] = {

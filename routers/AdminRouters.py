@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from models.AdminModel import AdminModel
+from enums.AdminEnum import AdminEnum
 from database.db import db
 
 admin_blueprint = Blueprint('admin', __name__)
@@ -11,7 +12,8 @@ def read_admins():
         admin_list = [{
             'id': admin.id,
             'name': admin.name,
-            'email': admin.email
+            'email': admin.email,
+            'level': admin.level_name
         } for admin in admins]
         
         return jsonify({
@@ -35,11 +37,14 @@ def create_admin():
             return jsonify({"error": "Email is required"}), 400
         if not data.get('password'):
             return jsonify({"error": "Password is required"}), 400
+        if not data.get('level'):
+            return jsonify({"error": "Level is required"}), 400
 
         new_admin = AdminModel(
             name=data['name'],
             email=data['email'],
-            password=data['password']
+            password=data['password'],
+            level=data['level']
         )
 
         db.session.add(new_admin)
@@ -67,7 +72,8 @@ def get_admin(id):
         admin_data = {
             'id': admin.id,
             'name': admin.name,
-            'email': admin.email
+            'email': admin.email,
+            'level': admin.level_name
         }
 
         return jsonify({
@@ -94,6 +100,8 @@ def update_admin(id):
             admin.email = data['email']
         if 'password' in data:
             admin.password = data['password']
+        if 'level' in data:
+            admin.level = data['level']
 
         db.session.commit()
 
