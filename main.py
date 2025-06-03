@@ -5,13 +5,13 @@ from routers.ProductRouters import product_blueprint
 from routers.StockRouters import stock_blueprint 
 from routers.AdminRouters import admin_blueprint 
 from dotenv import load_dotenv
-
+from flask_cors import CORS
 
 load_dotenv()
 import os
 
-
 app = Flask(__name__)
+CORS(app, supports_credentials=True)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URI")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)

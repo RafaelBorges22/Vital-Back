@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from werkzeug.security import generate_password_hash, check_password_hash
 from models.ClientModel import ClientModel
 from database.db import db
 from datetime import datetime
@@ -28,34 +29,40 @@ def read_client():
 @client_blueprint.route('/clients', methods=['POST'])
 def create_client():
     data = request.get_json()
+    
     try:
-        name = data['name']
-        email = data['email']
-        password = data['password']
-        cnpj = data['cnpj']
-        payment_method = data['payment_method']
-        opening_date = datetime.strptime(data['opening_date'], '%Y-%m-%d').date()
-        address = data['address']
+        # Primeiro verifique todos os campos obrigatórios
+        required_fields = ['name', 'email', 'password', 'cnpj', 
+                         'payment_method', 'opening_date', 'address']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({"error": f"Missing field: {field}"}), 400
 
+        # Processamento dos dados
+        hashed_password = generate_password_hash(data['password'])
+        opening_date = datetime.strptime(data['opening_date'], '%Y-%m-%d').date()
+
+        # Criação do cliente
         new_client = ClientModel(
-            name=name,
-            email=email,
-            password=password,
-            cnpj=cnpj,
-            payment_method=payment_method,
+            name=data['name'],
+            email=data['email'],
+            password_hash=hashed_password,  # Use um campo password_hash no model
+            cnpj=data['cnpj'],
+            payment_method=data['payment_method'],
             opening_date=opening_date,
-            address=address
+            address=data['address']
         )
 
         db.session.add(new_client)
         db.session.commit()
 
         return jsonify({"message": "Client created successfully"}), 201
-    except KeyError as e:
-        return jsonify({"error": f"Missing field: {str(e)}"}), 400
+        
     except ValueError:
         return jsonify({"error": "Invalid date format. Use YYYY-MM-DD."}), 400
-
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    
 @client_blueprint.route('/clients/<int:id>', methods=['GET'])
 def get_client(id):
     client = ClientModel.query.get(id)
@@ -108,3 +115,27 @@ def delete_client(id):
     db.session.commit()
 
     return jsonify({"message": "Client deleted successfully"}), 200
+
+@client_blueprint.route('/clients/login', methods=['POST'])
+def login_client():
+    data = request.get_json()
+    email = data.get('email')
+    senha = data.get('password')
+
+    if not email or not senha:
+        return jsonify({"error": "Email e senha são obrigatórios"}), 400
+
+    client = ClientModel.query.filter_by(email=email).first()
+
+    if not client or not client.check_password(senha):
+        return jsonify({"error": "Credenciais inválidas"}), 401
+
+    return jsonify({
+        "message": "Login bem-sucedido",
+        "client": {
+            "id": client.id,
+            "name": client.name,
+            "email": client.email
+        }
+    }), 200
+
