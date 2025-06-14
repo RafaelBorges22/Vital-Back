@@ -5,6 +5,7 @@ from routers.ProductRouters import product_blueprint
 from routers.StockRouters import stock_blueprint 
 from routers.AdminRouters import admin_blueprint 
 from routers.EmailRouters import email_blueprint
+from routers.DriverRouters import driver_blueprint
 from dotenv import load_dotenv
 from flask_cors import CORS
 
@@ -23,6 +24,7 @@ app.register_blueprint(product_blueprint, url_prefix = "/products")
 app.register_blueprint(stock_blueprint, url_prefix = "/stock")
 app.register_blueprint(admin_blueprint, url_prefix = "/admin")
 app.register_blueprint(email_blueprint, url_prefix = "/email")
+app.register_blueprint(driver_blueprint, url_prefix = "/driver")
 
 if __name__ == '__main__':
     with app.app_context():

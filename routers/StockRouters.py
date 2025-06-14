@@ -34,8 +34,11 @@ def read_stocks():
             "error": str(e)
         }), 500
 
-@stock_blueprint.route('/', methods=['POST'])
+@stock_blueprint.route('/', methods=['POST', 'OPTIONS'])
 def create_stock():
+    if request.method == 'OPTIONS':
+        return '', 204
+
     data = request.get_json()
     try:
         if not data.get('name'):
@@ -44,8 +47,10 @@ def create_stock():
         new_stock = StockModel(
             name=data['name'],
             quantity_products=data.get('quantity_products', 0),
-            entry_date=datetime.utcnow()
+            entry_date=datetime.utcnow(),
+            end_date=datetime.fromisoformat(data['end_date']) if 'end_date' in data else None
         )
+
 
         db.session.add(new_stock)
         db.session.commit()
@@ -100,6 +105,8 @@ def update_stock(id):
             stock.name = data['name']
         if 'quantity_products' in data:
             stock.quantity_products = data['quantity_products']
+        if 'entry_date' in data:
+            stock.entry_date = datetime.fromisoformat(data['entry_date']) if data['entry_date'] else None
         if 'end_date' in data:
             stock.end_date = datetime.fromisoformat(data['end_date']) if data['end_date'] else None
 
