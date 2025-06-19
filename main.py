@@ -19,7 +19,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
 # Registrar blueprints
-app.register_blueprint(client_blueprint)
+app.register_blueprint(client_blueprint, url_prefix = "/clients")
 app.register_blueprint(product_blueprint, url_prefix = "/products")
 app.register_blueprint(stock_blueprint, url_prefix = "/stock")
 app.register_blueprint(admin_blueprint, url_prefix = "/admin")

@@ -6,11 +6,8 @@ from datetime import datetime
 
 client_blueprint = Blueprint('client', __name__)
 
-@client_blueprint.route('/', methods=['GET'])
-def index():
-    return jsonify({"message": "Hello Vital !!"}), 200
 
-@client_blueprint.route('/clients', methods=['GET'])
+@client_blueprint.route('/', methods=['GET'])
 def read_client():
     clients = ClientModel.query.all()
     client_list = []
@@ -26,7 +23,7 @@ def read_client():
         })
     return jsonify({"message": "Client list retrieved successfully", "clients": client_list}), 200
 
-@client_blueprint.route('/clients', methods=['POST'])
+@client_blueprint.route('/', methods=['POST'])
 def create_client():
     data = request.get_json()
     
@@ -63,7 +60,7 @@ def create_client():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
     
-@client_blueprint.route('/clients/<int:id>', methods=['GET'])
+@client_blueprint.route('/<int:id>', methods=['GET'])
 def get_client(id):
     client = ClientModel.query.get(id)
     if not client:
@@ -80,7 +77,7 @@ def get_client(id):
     }
     return jsonify({"client": client_data}), 200
 
-@client_blueprint.route('/clients/<int:id>', methods=['PUT'])
+@client_blueprint.route('/<int:id>', methods=['PUT'])
 def update_client(id):
     client = ClientModel.query.get(id)
     if not client:
@@ -90,7 +87,6 @@ def update_client(id):
     try:
         client.name = data.get('name', client.name)
         client.email = data.get('email', client.email)
-        client.password = data.get('password', client.password)
         client.cnpj = data.get('cnpj', client.cnpj)
         client.payment_method = data.get('payment_method', client.payment_method)
         
@@ -105,7 +101,7 @@ def update_client(id):
     except ValueError:
         return jsonify({"error": "Invalid date format. Use YYYY-MM-DD."}), 400
 
-@client_blueprint.route('/clients/<int:id>', methods=['DELETE'])
+@client_blueprint.route('/<int:id>', methods=['DELETE'])
 def delete_client(id):
     client = ClientModel.query.get(id)
     if not client:
@@ -116,7 +112,7 @@ def delete_client(id):
 
     return jsonify({"message": "Client deleted successfully"}), 200
 
-@client_blueprint.route('/clients/login', methods=['POST'])
+@client_blueprint.route('/login', methods=['POST'])
 def login_client():
     data = request.get_json()
     email = data.get('email')
