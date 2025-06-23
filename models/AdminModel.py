@@ -1,5 +1,6 @@
 from database.db import db
 from enums.AdminEnum import AdminEnum
+from werkzeug.security import check_password_hash
 
 class AdminModel(db.Model):
     __tablename__ = 'admins'
@@ -16,3 +17,6 @@ class AdminModel(db.Model):
     
     def __repr__(self):
         return f'<Admin(name={self.name}, email={self.email}, level={self.level})>'
+
+    def check_password(self, plain_password):
+        return check_password_hash(self.password, plain_password)

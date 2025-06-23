@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify
 from models.AdminModel import AdminModel
 from enums.AdminEnum import AdminEnum
 from database.db import db
+from werkzeug.security import generate_password_hash
+import traceback
 
 admin_blueprint = Blueprint('admin', __name__)
 
@@ -31,20 +33,28 @@ def read_admins():
 def create_admin():
     data = request.get_json()
     try:
-        if not data.get('name'):
-            return jsonify({"error": "name is required"}), 400
-        if not data.get('email'):
-            return jsonify({"error": "Email is required"}), 400
-        if not data.get('password'):
-            return jsonify({"error": "Password is required"}), 400
-        if not data.get('level'):
-            return jsonify({"error": "Level is required"}), 400
+        required_fields = ['name', 'email', 'password', 'level']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({"error": f"{field} is required"}), 400
+
+        try:
+            level_enum = AdminEnum[data['level']] 
+            level_value = AdminEnum.to_level(level_enum.value) 
+        except (KeyError, ValueError) as e:
+            return jsonify({
+                "error": f"Level inválido. Valores válidos: {[e.name for e in AdminEnum]}",
+                "valid_levels": [e.name for e in AdminEnum]
+            }), 400
+
+        if AdminModel.query.filter_by(email=data['email']).first():
+            return jsonify({"error": "Email já cadastrado"}), 400
 
         new_admin = AdminModel(
             name=data['name'],
             email=data['email'],
-            password=data['password'],
-            level=data['level']
+            password=generate_password_hash(data['password']),  
+            level=level_value  
         )
 
         db.session.add(new_admin)
@@ -52,14 +62,16 @@ def create_admin():
 
         return jsonify({
             "success": True,
-            "message": "Admin created successfully",
+            "message": "Admin criado com sucesso",
             "id": new_admin.id
         }), 201
+
     except Exception as e:
         db.session.rollback()
         return jsonify({
             "success": False,
-            "error": str(e)
+            "error": str(e),
+            "stacktrace": traceback.format_exc()  
         }), 500
     
 @admin_blueprint.route('/<int:id>', methods=['GET'])
@@ -101,7 +113,11 @@ def update_admin(id):
         if 'password' in data:
             admin.password = data['password']
         if 'level' in data:
-            admin.level = data['level']
+            try:
+                level_enum = AdminEnum[data['level']]
+                admin.level=AdminEnum.to_level(level_enum.value)
+            except KeyError:
+                return jsonify({"error": "Invalid level"}), 400
 
         db.session.commit()
 
@@ -136,4 +152,36 @@ def delete_admin(id):
             "success": False,
             "error": str(e)
         }), 500
+
+@admin_blueprint.route('/login-admin', methods=['POST'])
+def login_admin():
+    data = request.get_json()
+    
+    if not data or not data.get('email') or not data.get('password'):
+        return jsonify({"error": "Email e senha são obrigatórios"}), 400
+
+    try:
+        admin = AdminModel.query.filter_by(email=data['email']).first()
+        
+        if not admin or not admin.check_password(data['password']):
+            return jsonify({"error": "Credenciais inválidas"}), 401
+
+        response = jsonify({
+            "message": "Login bem-sucedido",
+            "admin": {
+                "id": admin.id,
+                "name": admin.name,
+                "email": admin.email,
+                "level": admin.level_name
+            }
+        })
+        
+        return response, 200
+
+    except Exception as e:
+        return jsonify({
+            "error": "Erro interno no servidor",
+            "details": str(e)
+        }), 500
+              
 

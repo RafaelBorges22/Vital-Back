@@ -28,22 +28,19 @@ def create_client():
     data = request.get_json()
     
     try:
-        # Primeiro verifique todos os campos obrigatórios
         required_fields = ['name', 'email', 'password', 'cnpj', 
                          'payment_method', 'opening_date', 'address']
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing field: {field}"}), 400
 
-        # Processamento dos dados
         hashed_password = generate_password_hash(data['password'])
         opening_date = datetime.strptime(data['opening_date'], '%Y-%m-%d').date()
 
-        # Criação do cliente
         new_client = ClientModel(
             name=data['name'],
             email=data['email'],
-            password_hash=hashed_password,  # Use um campo password_hash no model
+            password_hash=hashed_password,  
             cnpj=data['cnpj'],
             payment_method=data['payment_method'],
             opening_date=opening_date,
