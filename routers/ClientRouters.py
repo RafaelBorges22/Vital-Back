@@ -1,8 +1,10 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from models.ClientModel import ClientModel
 from database.db import db
-from datetime import datetime
+from datetime import datetime, timedelta
+import jwt
+
 
 client_blueprint = Blueprint('client', __name__)
 
@@ -123,12 +125,23 @@ def login_client():
     if not client or not client.check_password(senha):
         return jsonify({"error": "Credenciais inválidas"}), 401
 
-    return jsonify({
-        "message": "Login bem-sucedido",
-        "client": {
-            "id": client.id,
-            "name": client.name,
-            "email": client.email
+    try:
+        token_payload = {
+            'id': client.id,
+            'email': client.email,
+            'role': 'client',
+            'exp': datetime.utcnow() + timedelta(days=1)
         }
-    }), 200
+        token = jwt.encode(token_payload, current_app.config['SECRET_KEY'], algorithm='HS256')
+        return jsonify({
+            "message": "Login bem-sucedido",
+            "access_token": token,
+            "client": {
+                "id": client.id,
+                "name": client.name,
+                "email": client.email
+            }
+        }), 200
+    except Exception as e:
+        return jsonify({"error": f"Erro ao gerar token: {str(e)}"}), 500
 

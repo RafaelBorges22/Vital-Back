@@ -11,11 +11,15 @@ from flask_cors import CORS
 
 load_dotenv()
 import os
+print(os.urandom(24).hex())
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URI")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'minha_chave_secreta') 
+
+
 db.init_app(app)
 
 # Registrar blueprints
