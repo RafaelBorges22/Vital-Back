@@ -1,9 +1,13 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from models.AdminModel import AdminModel
 from enums.AdminEnum import AdminEnum
 from database.db import db
 from werkzeug.security import generate_password_hash
+from datetime import datetime, timedelta
 import traceback
+import jwt
+
+
 
 admin_blueprint = Blueprint('admin', __name__)
 
@@ -111,7 +115,7 @@ def update_admin(id):
         if 'email' in data:
             admin.email = data['email']
         if 'password' in data:
-            admin.password = data['password']
+             admin.password = generate_password_hash(data['password'])
         if 'level' in data:
             try:
                 level_enum = AdminEnum[data['level']]
@@ -166,8 +170,18 @@ def login_admin():
         if not admin or not admin.check_password(data['password']):
             return jsonify({"error": "Credenciais inválidas"}), 401
 
+        token_payload = {
+            'id': admin.id,
+            'email': admin.email,
+            'role': 'admin', 
+            'level': admin.level_name, 
+            'exp': datetime.utcnow() + timedelta(days=1) 
+        }
+        token = jwt.encode(token_payload, current_app.config['SECRET_KEY'], algorithm='HS256')
+
         response = jsonify({
             "message": "Login bem-sucedido",
+            "access_token": token, 
             "admin": {
                 "id": admin.id,
                 "name": admin.name,
@@ -183,5 +197,3 @@ def login_admin():
             "error": "Erro interno no servidor",
             "details": str(e)
         }), 500
-              
-
