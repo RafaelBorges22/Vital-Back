@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from models.ClientModel import ClientModel
+from enums.PaymentEnum import PaymentEnum
 from database.db import db
 from datetime import datetime, timedelta
 import jwt
@@ -28,7 +29,6 @@ def read_client():
 @client_blueprint.route('/', methods=['POST'])
 def create_client():
     data = request.get_json()
-    
     try:
         required_fields = ['name', 'email', 'password', 'cnpj', 
                          'payment_method', 'opening_date', 'address']
@@ -39,12 +39,17 @@ def create_client():
         hashed_password = generate_password_hash(data['password'])
         opening_date = datetime.strptime(data['opening_date'], '%Y-%m-%d').date()
 
+        try:
+            payment_method = PaymentEnum.from_payment_method(data['payment_method'])
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 400
+
         new_client = ClientModel(
             name=data['name'],
             email=data['email'],
             password_hash=hashed_password,  
             cnpj=data['cnpj'],
-            payment_method=data['payment_method'],
+            payment_method=payment_method,
             opening_date=opening_date,
             address=data['address']
         )
@@ -58,6 +63,35 @@ def create_client():
         return jsonify({"error": "Invalid date format. Use YYYY-MM-DD."}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+@client_blueprint.route('/<int:id>', methods=['PUT'])
+def update_client(id):
+    client = ClientModel.query.get(id)
+    if not client:
+        return jsonify({"error": "Client not found"}), 404
+
+    data = request.get_json()
+    try:
+        client.name = data.get('name', client.name)
+        client.email = data.get('email', client.email)
+        client.cnpj = data.get('cnpj', client.cnpj)
+
+        if 'payment_method' in data:
+            try:
+                client.payment_method = PaymentEnum.from_payment_method(data['payment_method'])
+            except ValueError as e:
+                return jsonify({"error": str(e)}), 400
+
+        if 'opening_date' in data:
+            client.opening_date = datetime.strptime(data['opening_date'], '%Y-%m-%d').date()
+
+        client.address = data.get('address', client.address)
+
+        db.session.commit()
+
+        return jsonify({"message": "Client updated successfully"}), 200
+    except ValueError:
+        return jsonify({"error": "Invalid date format. Use YYYY-MM-DD."}), 400
     
 @client_blueprint.route('/<int:id>', methods=['GET'])
 def get_client(id):
@@ -75,30 +109,6 @@ def get_client(id):
         'address': client.address
     }
     return jsonify({"client": client_data}), 200
-
-@client_blueprint.route('/<int:id>', methods=['PUT'])
-def update_client(id):
-    client = ClientModel.query.get(id)
-    if not client:
-        return jsonify({"error": "Client not found"}), 404
-
-    data = request.get_json()
-    try:
-        client.name = data.get('name', client.name)
-        client.email = data.get('email', client.email)
-        client.cnpj = data.get('cnpj', client.cnpj)
-        client.payment_method = data.get('payment_method', client.payment_method)
-        
-        if 'opening_date' in data:
-            client.opening_date = datetime.strptime(data['opening_date'], '%Y-%m-%d').date()
-
-        client.address = data.get('address', client.address)
-
-        db.session.commit()
-
-        return jsonify({"message": "Client updated successfully"}), 200
-    except ValueError:
-        return jsonify({"error": "Invalid date format. Use YYYY-MM-DD."}), 400
 
 @client_blueprint.route('/<int:id>', methods=['DELETE'])
 def delete_client(id):

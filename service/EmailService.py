@@ -2,6 +2,10 @@ import smtplib
 from email.message import EmailMessage
 import os
 import mimetypes 
+import dotenv
+
+dotenv.load_dotenv()
+
 class EmailService:
     def __init__(self):
         self.smtp_server = "smtp.gmail.com"
@@ -19,7 +23,6 @@ class EmailService:
         msg['To'] = to_email
         msg.set_content(content)
 
-        # Lógica para adicionar o anexo
         if attachment_path and os.path.exists(attachment_path):
             try:
                 ctype, encoding = mimetypes.guess_type(attachment_path)
