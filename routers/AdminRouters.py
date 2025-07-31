@@ -172,6 +172,7 @@ def login_admin():
 
         token_payload = {
             'id': admin.id,
+            'name': admin.name,
             'email': admin.email,
             'role': 'admin', 
             'level': admin.level_name, 
@@ -180,7 +181,7 @@ def login_admin():
         token = jwt.encode(token_payload, current_app.config['SECRET_KEY'], algorithm='HS256')
 
         response = jsonify({
-            "message": "Login bem-sucedido",
+            "message": "Login bem-sucedido" + admin.name,
             "access_token": token, 
             "admin": {
                 "id": admin.id,
