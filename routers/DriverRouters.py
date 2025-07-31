@@ -1,7 +1,9 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from models.DriverModel import DriverModel
 from database.db import db
+from datetime import datetime, timedelta
+import jwt
 
 driver_blueprint = Blueprint('driver', __name__)
 
@@ -91,6 +93,43 @@ def delete_driver(driver_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
+
+@driver_blueprint.route('/login-motorista', methods=['POST'])
+def login_driver():
+    data = request.get_json()
+    senha = data.get('password')
+    cnh = data.get("cnh")
+
+
+    if not cnh or not senha:
+        return jsonify({"error": "CNH e senha são obrigatórios"}), 400
+
+    driver = DriverModel.query.filter_by(cnh=cnh).first()
+
+    if not driver or not driver.check_password(senha):
+        return jsonify({"error": "Credenciais inválidas"}), 401
+
+    try:
+        token_payload = {
+            'id': driver.id,
+            'cnh': driver.cnh,
+            'role': 'driver',
+            'exp': datetime.utcnow() + timedelta(days=1)
+        }
+        token = jwt.encode(token_payload, current_app.config['SECRET_KEY'], algorithm='HS256')
+        return jsonify({
+            "message": "Bem vindo " + driver.name,
+            "access_token": token,
+            "driver": {
+                "id": driver.id,
+                "name": driver.name,
+                "cnh": driver.cnh,
+                "vehicle_plate": driver.vehicle_plate}
+        }), 200
+    except Exception as e:
+        return jsonify({"error": f"Erro ao gerar token: {str(e)}"}), 500
+
 
 
 

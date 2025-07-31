@@ -134,7 +134,7 @@ def login_client():
         }
         token = jwt.encode(token_payload, current_app.config['SECRET_KEY'], algorithm='HS256')
         return jsonify({
-            "message": "Login bem-sucedido",
+            "message": "Login bem-sucedido " + client.name,
             "access_token": token,
             "client": {
                 "id": client.id,
