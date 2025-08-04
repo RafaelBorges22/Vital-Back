@@ -30,7 +30,7 @@ app.register_blueprint(stock_blueprint, url_prefix = "/stock")
 app.register_blueprint(admin_blueprint, url_prefix = "/admin")
 app.register_blueprint(email_blueprint, url_prefix = "/email")
 app.register_blueprint(driver_blueprint, url_prefix = "/driver")
-app.register_blueprint(solicitation_blueprint, url_prefix = "/solicitation")
+app.register_blueprint(solicitation_blueprint, url_prefix = "/solicitations")
 
 if __name__ == '__main__':
     with app.app_context():
