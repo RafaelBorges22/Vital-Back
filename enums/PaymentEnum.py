@@ -2,7 +2,8 @@ from enum import Enum
 
 class PaymentEnum(Enum):
     DINHEIRO = "DINHEIRO"
-    CARD = "CARTÃO"
+    CARD_DEBIT = "DEBITO"
+    CARD_CREDIT = "CREDITO"
     PIX = "PIX"
     PRODUTOS = "PRODUTOS"
 
@@ -11,8 +12,10 @@ class PaymentEnum(Enum):
         method = method.lower()
         if method == "Dinheiro" or method == "dinheiro":
             return PaymentEnum.DINHEIRO.value
-        elif method == "Cartão" or method == "cartão":
-            return PaymentEnum.CARD.value
+        elif method == "Debito" or method == "debito":
+            return PaymentEnum.CARD_DEBIT.value
+        elif method == "Credito" or method == "credito":
+            return PaymentEnum.CARD_CREDIT.value
         elif method == "Pix" or method == "pix":
             return PaymentEnum.PIX.value
         elif method == "Produtos" or method == "produtos":

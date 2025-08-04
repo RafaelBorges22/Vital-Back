@@ -7,8 +7,6 @@ from datetime import datetime, timedelta
 import traceback
 import jwt
 
-
-
 admin_blueprint = Blueprint('admin', __name__)
 
 @admin_blueprint.route('/', methods=['GET'])

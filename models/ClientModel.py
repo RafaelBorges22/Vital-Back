@@ -9,10 +9,12 @@ class ClientModel(db.Model):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(200))  
-    cnpj = db.Column(db.String(14), unique=True)  # CNPJ tem 14 caracteres
+    cnpj = db.Column(db.String(14), unique=True)  
     payment_method = db.Column(db.String(50))
     opening_date = db.Column(db.Date)
     address = db.Column(db.String(200))
+
+    solicitations = db.relationship('SolicitationModel', back_populates='client', cascade="all, delete-orphan")
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
