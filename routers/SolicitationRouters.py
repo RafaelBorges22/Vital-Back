@@ -12,9 +12,9 @@ def read_solicitations():
         solicitations = SolicitationModel.query.all()
         solicitation_list = [{
             'id': s.id,
-            'client_id': s.client_id,
             'client_name': s.client.name if s.client else None,
-            'adress': s.adress,
+            'client_cnpj': s.client.cnpj if s.client else None, 
+            'client_adress': s.client.address if s.client else None,
             'status': s.status,
             'description': s.description,
             'date_solicitation': s.date_solicitation.isoformat(),
@@ -33,11 +33,11 @@ def read_solicitations():
 def create_solicitation():
     data = request.get_json()
     try:
-        required_fields = ['client_id', 'adress', 'status', 'description', 'date_collected']
+        required_fields = ['client_id', 'status', 'description', 'date_collected']
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing field: {field}"}), 400
-        
+
         try:
             status_value = SolicitationEnum.from_status(data['status'])
         except ValueError as ve:
@@ -53,17 +53,15 @@ def create_solicitation():
 
         new_solicitation = SolicitationModel(
             client_id=data['client_id'],
-            adress=data['adress'],
             status=status_value,
             description=data['description'],
-            date_solicitation=datetime.utcnow(),
             date_collected=date_collected
         )
 
         db.session.add(new_solicitation)
         db.session.commit()
 
-        return jsonify({"message": "Solicitation created successfully"}), 201
+        return jsonify({"message": "Solicitation created successfully", "id": new_solicitation.id}), 201
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

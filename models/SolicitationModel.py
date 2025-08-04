@@ -6,7 +6,6 @@ class SolicitationModel(db.Model):
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     client_id = db.Column(db.Integer, db.ForeignKey('clients.id'), nullable=False)
-    adress = db.Column(db.String(255), nullable=False)
     status = db.Column(db.String(20), nullable=False, default=SolicitationEnum.PENDING.value)
     description = db.Column(db.Text, nullable=True)
     date_solicitation = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
