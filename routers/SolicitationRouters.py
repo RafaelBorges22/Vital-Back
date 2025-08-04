@@ -29,7 +29,8 @@ def read_solicitations():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@solicitation_blueprint.route('/', methods=['POST'])
+@solicitation_blueprint.route('/', methods=['POST', 'OPTIONS'])
+@solicitation_blueprint.route('', methods=['POST', 'OPTIONS'])
 def create_solicitation():
     data = request.get_json()
     try:
@@ -50,7 +51,7 @@ def create_solicitation():
 
         if date_collected <= datetime.utcnow():
             return jsonify({"error": "date_collected deve ser uma data futura."}), 400
-
+        
         new_solicitation = SolicitationModel(
             client_id=data['client_id'],
             status=status_value,
@@ -123,9 +124,6 @@ def delete_solicitation(solicitation_id):
         return jsonify({"message": "Solicitation deleted successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-
 
 
 

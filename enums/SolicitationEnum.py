@@ -14,5 +14,7 @@ class SolicitationEnum(Enum):
             return SolicitationEnum.APPROVED.value
         elif status == "REJEITADO":
             return SolicitationEnum.REJECTED.value
+        elif status == "":
+            return SolicitationEnum.PENDING.value
         else:
             raise ValueError(f"Status inválido: {status}")
