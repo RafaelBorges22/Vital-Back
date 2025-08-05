@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from models.SolicitationModel import SolicitationModel
+from models.DriverModel import DriverModel  
 from enums.SolicitationEnum import SolicitationEnum
 from database.db import db
 from datetime import datetime
@@ -18,7 +19,9 @@ def read_solicitations():
             'status': s.status,
             'description': s.description,
             'date_solicitation': s.date_solicitation.isoformat(),
-            'date_collected': s.date_collected.isoformat() if s.date_collected else None
+            'date_collected': s.date_collected.isoformat() if s.date_collected else None,
+            'driver_id': s.driver_id,
+            'driver_name': s.driver.name if s.driver else 'Motorista pendente' 
         } for s in solicitations]
 
         return jsonify({
@@ -30,7 +33,6 @@ def read_solicitations():
         return jsonify({"success": False, "error": str(e)}), 500
 
 @solicitation_blueprint.route('/', methods=['POST', 'OPTIONS'])
-@solicitation_blueprint.route('', methods=['POST', 'OPTIONS'])
 def create_solicitation():
     data = request.get_json()
     try:
@@ -52,11 +54,18 @@ def create_solicitation():
         if date_collected <= datetime.utcnow():
             return jsonify({"error": "date_collected deve ser uma data futura."}), 400
         
+        driver_id = data.get('driver_id')
+        if driver_id:
+            driver = DriverModel.query.get(driver_id)
+            if not driver:
+                return jsonify({"error": "Driver not found"}), 404
+        
         new_solicitation = SolicitationModel(
             client_id=data['client_id'],
             status=status_value,
             description=data['description'],
-            date_collected=date_collected
+            date_collected=date_collected,
+            driver_id=driver_id 
         )
 
         db.session.add(new_solicitation)
@@ -77,13 +86,14 @@ def read_solicitation(solicitation_id):
         'id': solicitation.id,
         'client_id': solicitation.client_id,
         'client_name': solicitation.client.name if solicitation.client else None,
-        'adress': solicitation.adress,
+        'client_adress': solicitation.client.address if solicitation.client else None,
         'status': solicitation.status,
         'description': solicitation.description,
         'date_solicitation': solicitation.date_solicitation.isoformat(),
-        'date_collected': solicitation.date_collected.isoformat() if solicitation.date_collected else None
+        'date_collected': solicitation.date_collected.isoformat() if solicitation.date_collected else None,
+        'driver_id': solicitation.driver_id,
+        'driver_name': solicitation.driver.name if solicitation.driver else 'Motorista pendente' 
     }), 200
-
 
 @solicitation_blueprint.route('/<int:solicitation_id>', methods=['PUT'])
 def update_solicitation(solicitation_id):
@@ -93,6 +103,16 @@ def update_solicitation(solicitation_id):
 
     data = request.get_json()
     try:
+        if 'driver_id' in data:
+            driver_id = data['driver_id']
+            if driver_id:
+                driver = DriverModel.query.get(driver_id)
+                if not driver:
+                    return jsonify({"error": "Driver not found"}), 404
+                solicitation.driver_id = driver_id
+            else:
+                return jsonify({"error": "driver_id cannot be null on update"}), 400
+
         if 'adress' in data:
             solicitation.adress = data['adress']
         if 'status' in data:
@@ -124,13 +144,6 @@ def delete_solicitation(solicitation_id):
         return jsonify({"message": "Solicitation deleted successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-
-
-
-
-
 
 
 
