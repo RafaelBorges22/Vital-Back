@@ -2,10 +2,12 @@ from flask import Blueprint, request, jsonify
 from models.SolicitationModel import SolicitationModel
 from models.DriverModel import DriverModel  
 from enums.SolicitationEnum import SolicitationEnum
+from service.EmailService import EmailService
 from database.db import db
 from datetime import datetime
 
 solicitation_blueprint = Blueprint('solicitation', __name__)
+email_service = EmailService()
 
 @solicitation_blueprint.route('/', methods=['GET'])
 def read_solicitations():
@@ -97,40 +99,51 @@ def read_solicitation(solicitation_id):
 
 @solicitation_blueprint.route('/<int:solicitation_id>', methods=['PUT'])
 def update_solicitation(solicitation_id):
-    solicitation = SolicitationModel.query.get(solicitation_id)
-    if not solicitation:
-        return jsonify({"error": "Solicitation not found"}), 404
-
+    solicitation = SolicitationModel.query.get_or_404(solicitation_id)
     data = request.get_json()
+    
     try:
-        if 'driver_id' in data:
-            driver_id = data['driver_id']
-            if driver_id:
-                driver = DriverModel.query.get(driver_id)
-                if not driver:
-                    return jsonify({"error": "Driver not found"}), 404
-                solicitation.driver_id = driver_id
-            else:
-                return jsonify({"error": "driver_id cannot be null on update"}), 400
-
-        if 'adress' in data:
-            solicitation.adress = data['adress']
+        old_status = solicitation.status
+        
         if 'status' in data:
-            try:
-                solicitation.status = SolicitationEnum.from_status(data['status'])  
-            except ValueError as ve:
-                return jsonify({"error": str(ve)}), 400
-        if 'description' in data:
-            solicitation.description = data['description']
+            new_status = SolicitationEnum.from_status(data['status'])
+            solicitation.status = new_status
+            
+        if 'driver_id' in data:
+            solicitation.driver_id = data['driver_id']
+        
         if 'date_collected' in data:
-            solicitation.date_collected = datetime.fromisoformat(data['date_collected'])
+            if data['date_collected']:
+                solicitation.date_collected = datetime.fromisoformat(data['date_collected'])
+            else:
+                solicitation.date_collected = None
 
         db.session.commit()
 
-        return jsonify({"message": "Solicitation updated successfully"}), 200
+        if old_status != SolicitationEnum.APPROVED.value and solicitation.status == SolicitationEnum.APPROVED.value:
+            try:
+                client_email = solicitation.client.email
+                subject = "Sua solicitação foi aprovada!"
+                content = f"Olá {solicitation.client.name},\n\n" \
+                          f"Sua solicitação de coleta foi aprovada e está em andamento. " \
+                          f"Agradeçemos pela confiança em nosso serviço.\n\n" \
+                          f"Atenciosamente,\n" \
+                          f"A equipe Vital."
+                
+                email_service.send_email(to_email=client_email, subject=subject, content=content)
+                print(f"E-mail de aprovação enviado para {client_email}.")
+            except Exception as email_e:
+                print(f"Erro ao enviar e-mail de aprovação para o cliente {solicitation.client.id}: {str(email_e)}")
 
+        return jsonify({"message": f"Solicitação {solicitation_id} atualizada com sucesso."}), 200
+        
+    except ValueError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 400
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        db.session.rollback()
+        return jsonify({"error": "Ocorreu um erro ao atualizar a solicitação."}), 500
+
 
 @solicitation_blueprint.route('/<int:solicitation_id>', methods=['DELETE'])
 def delete_solicitation(solicitation_id):
