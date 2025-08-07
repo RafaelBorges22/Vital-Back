@@ -1,11 +1,13 @@
-version: '3.8'
-
 services:
-  app:
-    build: .
+  db:
+    image: postgres:14-alpine
+    container_name: vital-database
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: vital-database
     ports:
-      - "5000:5000"
+      - "5432:5432"
     volumes:
-      - .:/app
-    env_file:
-      - .env
+      - ./postgres-data:/var/lib/postgresql/data

@@ -26,3 +26,6 @@ out/
 # Coverage
 coverage/
 .nyc_output/
+
+#Database
+postgres-data/
