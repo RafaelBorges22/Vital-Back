@@ -13,12 +13,12 @@ def read_drivers():
     driver_list = []
     for driver in drivers:
         driver_list.append({
-                'id': driver.id,
-                'name': driver.name,
-                'cnh': driver.cnh,
-                'vehicle_plate': driver.vehicle_plate
-            })
-        return jsonify({"message": "Driver list retrieved successfully", "drivers": driver_list}), 200
+            'id': driver.id,
+            'name': driver.name,
+            'cnh': driver.cnh,
+            'vehicle_plate': driver.vehicle_plate
+        })
+    return jsonify({"message": "Driver list retrieved successfully", "drivers": driver_list}), 200
 
 @driver_blueprint.route('/', methods=['POST'])
 def create_driver():
