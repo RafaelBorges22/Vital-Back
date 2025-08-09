@@ -139,6 +139,7 @@ def login_client():
         token_payload = {
             'id': client.id,
             'email': client.email,
+            'name': client.name,
             'role': 'client',
             'exp': datetime.utcnow() + timedelta(days=1)
         }
