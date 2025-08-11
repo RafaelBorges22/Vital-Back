@@ -7,3 +7,4 @@ flask_mail
 flask_migrate
 PyJWT
 psycopg2-binary
+Gunicorn 
