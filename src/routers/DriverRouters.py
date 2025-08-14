@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
-from src.models.DriverModel import DriverModel
-from src.database.db import db
+from models.DriverModel import DriverModel
+from database.db import db
 from datetime import datetime, timedelta
 import jwt
 

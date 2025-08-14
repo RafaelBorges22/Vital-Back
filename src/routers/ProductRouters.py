@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
-from src.models.ProductModel import ProductModel
-from src.models.StockModel import StockModel
-from src.database.db import db
-from src.enums.ProductEnum import ProductEnum
+from models.ProductModel import ProductModel
+from models.StockModel import StockModel
+from database.db import db
+from enums.ProductEnum import ProductEnum
 product_blueprint = Blueprint('products', __name__)
 
 @product_blueprint.route('/', methods=['GET'])

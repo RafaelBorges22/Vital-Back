@@ -1,5 +1,5 @@
-from src.database.db import db
-from src.enums.AdminEnum import AdminEnum
+from database.db import db
+from enums.AdminEnum import AdminEnum
 from werkzeug.security import check_password_hash
 
 class AdminModel(db.Model):
