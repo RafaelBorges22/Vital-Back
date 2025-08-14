@@ -7,6 +7,7 @@ from routers.EmailRouters import email_blueprint
 from routers.DriverRouters import driver_blueprint
 from routers.SolicitationRouters import solicitation_blueprint
 from routers.StockRouters import stock_blueprint 
+from flask_migrate import Migrate
 from dotenv import load_dotenv
 from flask_cors import CORS
 
@@ -22,6 +23,9 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'minha_chave_secreta')
 
 
 db.init_app(app)
+migrate = Migrate(app, db)
+
+from models import *
 
 # Registrar blueprints
 app.register_blueprint(client_blueprint, url_prefix = "/clients")
