@@ -25,7 +25,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'minha_chave_secreta')
 db.init_app(app)
 migrate = Migrate(app, db)
 
-from models import *
+from src.models import *
 
 # Registrar blueprints
 app.register_blueprint(client_blueprint, url_prefix = "/clients")
