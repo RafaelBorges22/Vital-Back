@@ -1,5 +1,5 @@
-from database.db import db
-from enums.SolicitationEnum import SolicitationEnum
+from src.database.db import db
+from src.enums.SolicitationEnum import SolicitationEnum
 from datetime import datetime 
 
 class SolicitationModel(db.Model):

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
-from models.AdminModel import AdminModel
-from enums.AdminEnum import AdminEnum
-from database.db import db
+from src.models.AdminModel import AdminModel
+from src.enums.AdminEnum import AdminEnum
+from src.database.db import db
 from werkzeug.security import generate_password_hash
 from datetime import datetime, timedelta
 import traceback

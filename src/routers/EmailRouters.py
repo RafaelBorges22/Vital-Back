@@ -1,4 +1,4 @@
-from service.EmailService import EmailService
+from src.service.EmailService import EmailService
 from flask import Blueprint, request, jsonify
 import os
 

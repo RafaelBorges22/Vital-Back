@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
-from models.StockModel import StockModel
-from models.ProductModel import ProductModel
-from database.db import db
+from src.models.StockModel import StockModel
+from src.models.ProductModel import ProductModel
+from src.database.db import db
 from datetime import datetime
 
 stock_blueprint = Blueprint('stock', __name__)

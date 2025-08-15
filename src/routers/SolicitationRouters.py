@@ -1,9 +1,9 @@
 from flask import Blueprint, request, jsonify
-from models.SolicitationModel import SolicitationModel
-from models.DriverModel import DriverModel  
-from enums.SolicitationEnum import SolicitationEnum
-from service.EmailService import EmailService
-from database.db import db
+from src.models.SolicitationModel import SolicitationModel
+from src.models.DriverModel import DriverModel  
+from src.enums.SolicitationEnum import SolicitationEnum
+from src.service.EmailService import EmailService
+from src.database.db import db
 from datetime import datetime
 
 solicitation_blueprint = Blueprint('solicitation', __name__)
