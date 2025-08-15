@@ -1,11 +1,15 @@
+# Escolhe a imagem base do Python
 FROM python:3.11-slim
 
 WORKDIR /app
 
+COPY requirements.txt .
+
+RUN pip install --upgrade pip && pip install -r requirements.txt
+
 COPY . .
 
-RUN pip install --no-cache-dir -r requirements.txt
+EXPOSE 10000
 
-EXPOSE 5000
+CMD ["gunicorn", "src.main:app", "-b", "0.0.0.0:10000", "--workers=2"]
 
-CMD ["python", "main.py"]
