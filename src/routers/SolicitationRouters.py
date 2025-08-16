@@ -74,9 +74,7 @@ def create_solicitation():
         db.session.add(new_solicitation)
         db.session.commit()
 
-        # Adicione este bloco para enviar o e-mail de criação da solicitação
         try:
-            # Obtém o cliente a partir do client_id
             client = ClientModel.query.get(data['client_id'])
             if client and client.email:
                 subject = "Sua solicitação de coleta foi criada!"
