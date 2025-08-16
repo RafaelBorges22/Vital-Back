@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from src.models.SolicitationModel import SolicitationModel
+from src.models.ClientModel import ClientModel
 from src.models.DriverModel import DriverModel  
 from src.enums.SolicitationEnum import SolicitationEnum
 from src.service.EmailService import EmailService
@@ -73,9 +74,32 @@ def create_solicitation():
         db.session.add(new_solicitation)
         db.session.commit()
 
-        return jsonify({"message": "Solicitation created successfully", "id": new_solicitation.id}), 201
+        # Adicione este bloco para enviar o e-mail de criação da solicitação
+        try:
+            # Obtém o cliente a partir do client_id
+            client = ClientModel.query.get(data['client_id'])
+            if client and client.email:
+                subject = "Sua solicitação de coleta foi criada!"
+                content = (
+                    f"Olá {client.name},\n\n"
+                    f"Sua solicitação de coleta com a descrição '{new_solicitation.description}' "
+                    f"foi criada com sucesso.\n"
+                    f"Aguarde a aprovação e a designação de um motorista. "
+                    f"Agradecemos a sua preferência.\n\n"
+                    f"Atenciosamente,\n"
+                    f"A equipe Vital."
+                )
+                
+                email_service.send_email(to_email=client.email, subject=subject, content=content)
+                print(f"E-mail de criação de solicitação enviado para {client.email}.")
+            else:
+                print(f"Não foi possível enviar e-mail: Cliente não encontrado ou e-mail não cadastrado.")
+        except Exception as email_e:
+            print(f"Erro ao enviar e-mail de criação para o cliente {data['client_id']}: {str(email_e)}")
+            return jsonify({"message": "Solicitation created successfully", "id": new_solicitation.id}), 201
 
     except Exception as e:
+        db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
 @solicitation_blueprint.route('/<int:solicitation_id>', methods=['GET'])
