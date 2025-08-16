@@ -1,28 +1,24 @@
 #!/bin/sh
+set -x # Isso ainda é útil para depuração
 
-# Definir o modo de depuração para mais detalhes
-set -x
+# Mudar para o diretório de trabalho do aplicativo para garantir que o Python
+# e o Gunicorn possam encontrar os arquivos do projeto.
+cd /app
 
-# Tenta importar o Flask e a extensão de migração para verificar erros
-python3 -c "import flask_migrate"
-
-# Se o comando acima falhar, o script irá parar e mostrar o erro
-echo "Python modules imported successfully. Proceeding with migration..."
-
-# Define a variável de ambiente para o Flask
-export FLASK_APP=src.main:app
-
-# Adiciona um tempo de espera para garantir que o banco de dados esteja pronto
 echo "Waiting for database..."
 sleep 10
 
 # Tenta executar a migração, com repetições em caso de falha
+# A variável FLASK_APP é necessária para este comando
+export FLASK_APP=src.main:app
+
 until /usr/local/bin/python3 -m flask db upgrade
 do
   echo "Database migration failed. Retrying in 5 seconds..."
   sleep 5
 done
 
-# Executa o comando principal (Gunicorn)
 echo "Migration successful. Starting application..."
+
+# Executa o comando principal (Gunicorn)
 exec "$@"

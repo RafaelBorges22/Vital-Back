@@ -18,4 +18,4 @@ COPY . .
 
 EXPOSE 10000
 
-#CMD ["gunicorn", "src.main:app", "-b", "0.0.0.0:10000", "--workers=2"]
+CMD ["gunicorn", "src.main:app", "-b", "0.0.0.0:10000", "--workers=2"]
