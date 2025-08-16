@@ -1,14 +1,19 @@
 #!/bin/sh
-set -x
+set -e
 
-# Mudar para o diretório de trabalho do aplicativo para garantir que o Python encontre os arquivos.
+# Mude para o diretório de trabalho do aplicativo.
 cd /app
 
-echo "Iniciando a depuração de importação..."
+# Garanta que o PYTHONPATH esteja definido.
+export PYTHONPATH=./src
 
-# Tente importar sua aplicação Flask diretamente.
-# Qualquer erro de código ou de variável de ambiente aparecerá aqui.
-python3 -c "from src.main import app; print('Aplicação importada com sucesso.')"
+echo "Iniciando a migração do banco de dados..."
 
-# O contêiner irá parar aqui. A saída do comando acima conterá o erro.
-exit 0
+# Execute a migração e capture a saída para diagnóstico.
+python3 -m flask db upgrade
+
+echo "Migração bem-sucedida. Iniciando Gunicorn..."
+
+# Inicie o Gunicorn. O 'exec' substitui o processo do shell,
+# o que é uma boa prática em contêineres Docker.
+exec gunicorn src.main:app -b 0.0.0.0:$PORT

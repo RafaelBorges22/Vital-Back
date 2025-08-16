@@ -3,7 +3,7 @@ services:
     name: vitalreciclagem-api
     env: python
     buildCommand: "./build.sh"
-    startCommand: "gunicorn main:app"
+    startCommand: "/bin/sh ./entrypoint.sh"
     preDeployCommand: "./migrate.sh" 
     plan: free
     numInstances: 1
