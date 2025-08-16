@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: vitalreciclagem-api
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn main:app"
+    preDeployCommand: "flask db upgrade" 
+    plan: free
+    numInstances: 1
