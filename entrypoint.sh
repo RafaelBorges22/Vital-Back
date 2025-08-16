@@ -1,26 +1,14 @@
 #!/bin/sh
 set -x
 
-# Garante que o diretório de trabalho seja /app
+# Mudar para o diretório de trabalho do aplicativo para garantir que o Python encontre os arquivos.
 cd /app
 
-echo "Esperando pelo banco de dados..."
-sleep 10
+echo "Iniciando a depuração de importação..."
 
-# Define a variável de ambiente FLASK_APP para a migração
-export FLASK_APP=src.main:app
+# Tente importar sua aplicação Flask diretamente.
+# Qualquer erro de código ou de variável de ambiente aparecerá aqui.
+python3 -c "from src.main import app; print('Aplicação importada com sucesso.')"
 
-# Executa a migração do banco de dados
-echo "Iniciando a migração do banco de dados..."
-/usr/local/bin/python3 -m flask db upgrade
-
-# Verifica se o comando de migração foi bem-sucedido
-if [ $? -ne 0 ]; then
-  echo "A migração do banco de dados falhou. Saindo."
-  exit 1
-fi
-
-echo "Migração bem-sucedida. Iniciando Gunicorn..."
-
-# Executa o servidor web Gunicorn com a aplicação e a porta
-gunicorn -b 0.0.0.0:5000 src.main:app
+# O contêiner irá parar aqui. A saída do comando acima conterá o erro.
+exit 0
