@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: vitalreciclagem-api
-    env: python
-    buildCommand: "./build.sh"
-    startCommand: "/bin/sh ./entrypoint.sh"
-    preDeployCommand: "./migrate.sh" 
-    plan: free
-    numInstances: 1

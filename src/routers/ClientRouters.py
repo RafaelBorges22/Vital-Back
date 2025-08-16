@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
-from src.models.ClientModel import ClientModel
-from src.enums.PaymentEnum import PaymentEnum
-from src.database.db import db
+from models.ClientModel import ClientModel
+from enums.PaymentEnum import PaymentEnum
+from database.db import db
 from datetime import datetime, timedelta
 import jwt
 
@@ -108,7 +108,7 @@ def get_client(id):
         'opening_date': client.opening_date.isoformat(),
         'address': client.address
     }
-    return jsonify({"client": client_data}), 200
+    return jsonify({"client": "client_data"}), 200
 
 @client_blueprint.route('/<int:id>', methods=['DELETE'])
 def delete_client(id):
@@ -139,6 +139,7 @@ def login_client():
         token_payload = {
             'id': client.id,
             'email': client.email,
+            'name': client.name,
             'role': 'client',
             'exp': datetime.utcnow() + timedelta(days=1)
         }

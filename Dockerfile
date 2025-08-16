@@ -1,21 +1,25 @@
-# Escolhe a imagem base do Python
 FROM python:3.11-slim
 
+# Diretório de trabalho
 WORKDIR /app
-ENV PYTHONPATH "${PYTHONPATH}:/app/src"
+
+# Instalar dependências do sistema (necessário pro psycopg2)
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copiar dependências
 COPY requirements.txt .
 
-RUN apt-get update && apt-get install -y dos2unix
+# Instalar pacotes Python
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY entrypoint.sh .
-RUN chmod +x entrypoint.sh
-
-ENTRYPOINT ["./entrypoint.sh"]
-
-RUN pip install --upgrade pip && pip install -r requirements.txt
-
+# Copiar o restante do código
 COPY . .
 
-EXPOSE 10000
+# Expor a porta (Railway define $PORT automaticamente)
+EXPOSE 5000
 
-CMD ["gunicorn", "src.main:app", "-b", "0.0.0.0:10000", "--workers=2"]
+# Rodar com Gunicorn em produção
+CMD ["gunicorn", "-b", "0.0.0.0:${PORT}", "src.main:app"]
