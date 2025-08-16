@@ -17,7 +17,7 @@ load_dotenv()
 app = Flask(__name__)
 
 CORS(app, resources={r"/*": {
-    "origins": "https://vitalreciclagemapp.vercel.app"
+    "origins": "https://vitalreciclagem.vercel.app"
 }}, supports_credentials=True)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URI")
