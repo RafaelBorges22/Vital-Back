@@ -16,5 +16,11 @@ COPY . .
 # Altere a porta para 10000 para refletir o ambiente Render
 EXPOSE 10000
 
+# Copia o script para o contêiner
+COPY start-command.sh .
+
+# Torna o script executável
+RUN chmod +x start-command.sh
+
 # O comando para iniciar a aplicação
 CMD gunicorn -b 0.0.0.0:$PORT src.main:app
