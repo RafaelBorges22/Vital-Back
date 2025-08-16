@@ -1,24 +1,26 @@
 #!/bin/sh
-set -x # Isso ainda é útil para depuração
+set -x
 
-# Mudar para o diretório de trabalho do aplicativo para garantir que o Python
-# e o Gunicorn possam encontrar os arquivos do projeto.
+# Garante que o diretório de trabalho seja /app
 cd /app
 
-echo "Waiting for database..."
+echo "Esperando pelo banco de dados..."
 sleep 10
 
-# Tenta executar a migração, com repetições em caso de falha
-# A variável FLASK_APP é necessária para este comando
+# Define a variável de ambiente FLASK_APP para a migração
 export FLASK_APP=src.main:app
 
-until /usr/local/bin/python3 -m flask db upgrade
-do
-  echo "Database migration failed. Retrying in 5 seconds..."
-  sleep 5
-done
+# Executa a migração do banco de dados
+echo "Iniciando a migração do banco de dados..."
+/usr/local/bin/python3 -m flask db upgrade
 
-echo "Migration successful. Starting application..."
+# Verifica se o comando de migração foi bem-sucedido
+if [ $? -ne 0 ]; then
+  echo "A migração do banco de dados falhou. Saindo."
+  exit 1
+fi
 
-# Executa o comando principal (Gunicorn)
-exec "$@"
+echo "Migração bem-sucedida. Iniciando Gunicorn..."
+
+# Executa o servidor web Gunicorn com a aplicação e a porta
+gunicorn -b 0.0.0.0:5000 src.main:app
