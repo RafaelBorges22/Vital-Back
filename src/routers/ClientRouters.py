@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
-from models.ClientModel import ClientModel
-from enums.PaymentEnum import PaymentEnum
-from database.db import db
+from src.models.ClientModel import ClientModel
+from src.enums.PaymentEnum import PaymentEnum
+from src.database.db import db
 from datetime import datetime, timedelta
 import jwt
 
