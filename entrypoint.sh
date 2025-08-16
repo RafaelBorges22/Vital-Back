@@ -1,9 +1,10 @@
 #!/bin/sh
-
-export FLASK_APP=src.main:app
+set -x  
 
 echo "Waiting for database..."
 sleep 10
+
+export FLASK_APP=src.main:app
 
 until /usr/local/bin/python3 -m flask db upgrade 2>&1
 do
@@ -12,4 +13,5 @@ do
 done
 
 echo "Migration successful. Starting application..."
+
 exec "$@"
