@@ -1,5 +1,6 @@
 #!/bin/sh
 set -x  
+python3 -c "import flask_migrate"
 
 echo "Waiting for database..."
 sleep 10
