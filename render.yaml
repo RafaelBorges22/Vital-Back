@@ -4,6 +4,6 @@ services:
     env: python
     buildCommand: "./build.sh"
     startCommand: "gunicorn main:app"
-    preDeployCommand: "flask db upgrade" 
+    preDeployCommand: "./migrate.sh" 
     plan: free
     numInstances: 1

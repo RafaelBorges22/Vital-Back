@@ -5,6 +5,9 @@ WORKDIR /app
 ENV PYTHONPATH "${PYTHONPATH}:/app/src"
 COPY requirements.txt .
 
+COPY migrate.sh .
+RUN chmod +x migrate.sh
+
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY . .
