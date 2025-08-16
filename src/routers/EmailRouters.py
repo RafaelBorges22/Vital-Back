@@ -7,7 +7,7 @@ email_service = EmailService()
 
 UPLOAD_FOLDER = 'temp_attachments'
 if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @email_blueprint.post("/notify")
 def notify_client():
