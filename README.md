@@ -1,4 +1,4 @@
-# ♻️ VITAL - Gerenciamento de Reciclagem de Óleo
+# ♻️ VITAL RECICLAGEM- Gerenciamento de Reciclagem de Óleo
 
 Bem-vindo ao **VITAL**, a plataforma que revoluciona o gerenciamento de uma empresa de reciclagem de óleo. Este projeto foi desenvolvido para otimizar e centralizar as operações, desde a coleta até o processamento, garantindo um processo eficiente e sustentável. 🚀
 
@@ -10,16 +10,16 @@ Bem-vindo ao **VITAL**, a plataforma que revoluciona o gerenciamento de uma empr
 - **✉️ Notificações por E-mail:** Mantenha todos informados sobre o status das solicitações e outras atualizações importantes.
 - **📈 Gerenciamento de Solicitações:** Sistema robusto para lidar com solicitações de coleta de óleo.
 
-## 🚀 Como Executar o Projeto
+## 🚀 Como Executar o Projeto no terminal GitBash
 
 1.  **Clone o repositório:**
-    ```bash
-    git clone [URL_DO_SEU_REPOSITÓRIO]
-    cd VITAL-BACK
+    ```
+    git clone https://github.com/RafaelBorges22/Vital-Back.git
+    cd Vital-Back
     ```
 
- 2.  **Entre na branch FEAT-LOCAL e abra na sua IDE:**
-    ```bash
+ 2.  **Entre na branch FEAT-LOCAL e abra o bash na sua IDE:**
+    ```
     git checkout FEAT-LOCAL
     code .
     ```
@@ -29,10 +29,12 @@ Bem-vindo ao **VITAL**, a plataforma que revoluciona o gerenciamento de uma empr
     pip install -r requirements.txt
     ```
 
-5.  **Configure as variáveis de ambiente:**
-    - Crie um arquivo `.env` na raiz do projeto e adicione as variáveis necessárias (ex: conexão com o banco de dados disponivel na sua maquina, chaves de API, etc.).
+5. Logo após faça o build do Docker com o comando:
+   ```
+   docker build
+    ```
 
-6.  **Execute o servidor:**
+7.  **Execute o servidor:**
     ```bash
     python main.py
     ```
