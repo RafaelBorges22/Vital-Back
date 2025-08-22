@@ -1,4 +1,4 @@
-# ♻️ VITAL RECICLAGEM- Gerenciamento de Reciclagem de Óleo
+# ♻️ VITAL RECICLAGEM - Gerenciamento de Reciclagem de Óleo
 
 Bem-vindo ao **VITAL**, a plataforma que revoluciona o gerenciamento de uma empresa de reciclagem de óleo. Este projeto foi desenvolvido para otimizar e centralizar as operações, desde a coleta até o processamento, garantindo um processo eficiente e sustentável. 🚀
 
