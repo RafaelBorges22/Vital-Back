@@ -21,11 +21,10 @@ Bem-vindo ao **VITAL**, a plataforma que revoluciona o gerenciamento de uma empr
  2.  **Entre na branch FEAT-LOCAL e abra o bash na sua IDE:**
     ```
     git checkout FEAT-LOCAL
-    code .
     ```
 
 4.  **Instale as dependências (certifique-se de ter o Python e o pip instalados):**
-    ```bash
+    ```
     pip install -r requirements.txt
     ```
 
