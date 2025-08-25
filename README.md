@@ -45,4 +45,4 @@ Certifique que esteja na branch `FEAT-LOCAL`.
   - Para se cadastrar e utilizar a plataforma como cliente, use seu e-mail pessoal para melhor experiencia, se preferir as outras informações preenche de forma ficticia.
  
 - **👥 Acesso para Administrador:**
-  - Para acessar como Administrador, na pagina inicial clique em **Acessar como colaborador** e coloque esse email: **vital.admin@gmail.com** e senha: **123**, e pronto, poderá acessar como admistrador.
+  - Para acessar como Administrador, na pagina inicial clique em **Acessar como colaborador** e coloque esse email: **admin.test@gmail.com** e senha: **123**, e pronto, poderá acessar como admistrador.
