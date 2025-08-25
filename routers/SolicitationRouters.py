@@ -38,7 +38,7 @@ def read_solicitations():
 def create_solicitation():
     data = request.get_json()
     try:
-        required_fields = ['client_id', 'status', 'description', 'date_collected']
+        required_fields = ['client_id', 'description', 'date_collected']
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing field: {field}"}), 400
