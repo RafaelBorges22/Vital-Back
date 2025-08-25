@@ -1,0 +1,50 @@
+from flask import Flask
+from src.database.db import db
+from src.routers.ClientRouters import client_blueprint
+from src.routers.ProductRouters import product_blueprint
+from src.routers.AdminRouters import admin_blueprint 
+from src.routers.EmailRouters import email_blueprint
+from src.routers.DriverRouters import driver_blueprint
+from src.routers.SolicitationRouters import solicitation_blueprint
+from src.routers.StockRouters import stock_blueprint 
+from flask_migrate import Migrate
+from dotenv import load_dotenv
+from flask_cors import CORS
+import os
+
+load_dotenv()
+
+app = Flask(__name__)
+
+CORS(app, resources={r"/*": {
+    "origins": "https://vitalreciclagem.vercel.app"
+}}, supports_credentials=True)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URI")
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'minha_chave_secreta')
+
+db.init_app(app)
+migrate = Migrate(app, db)
+
+from src.models import *
+
+# Registrar blueprints
+app.register_blueprint(client_blueprint, url_prefix="/clients")
+app.register_blueprint(product_blueprint, url_prefix="/products")
+app.register_blueprint(stock_blueprint, url_prefix="/stocks")
+app.register_blueprint(admin_blueprint, url_prefix="/admins")
+app.register_blueprint(email_blueprint, url_prefix="/email")
+app.register_blueprint(driver_blueprint, url_prefix="/drivers")
+app.register_blueprint(solicitation_blueprint, url_prefix="/solicitations")
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)

@@ -1,9 +1,9 @@
 flask
 flask_sqlalchemy
 flask_cors
-pymysql
 python-dotenv
 flask_mail
 flask_migrate
 PyJWT
 psycopg2-binary
+gunicorn
