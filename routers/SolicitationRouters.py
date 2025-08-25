@@ -36,32 +36,34 @@ def read_solicitations():
 
 @solicitation_blueprint.route('/', methods=['POST', 'OPTIONS'])
 def create_solicitation():
+    if request.method == 'OPTIONS':
+        return jsonify({"message": "Preflight OK"}), 200
+
     data = request.get_json()
     try:
-        required_fields = ['client_id', 'description', 'date_collected']
+        required_fields = ['client_id', 'description']
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing field: {field}"}), 400
 
-        try:
-            status_value = SolicitationEnum.from_status(data['status'])
-        except ValueError as ve:
-            return jsonify({"error": str(ve)}), 400
+        status_value = SolicitationEnum.PENDING.value
 
-        try:
-            date_collected = datetime.fromisoformat(data['date_collected'])
-        except ValueError:
-            return jsonify({"error": "Formato inválido para date_collected. Use ISO 8601."}), 400
+        date_collected = None
+        if 'date_collected' in data and data['date_collected']:
+            try:
+                date_collected = datetime.fromisoformat(data['date_collected'])
+            except ValueError:
+                return jsonify({"error": "Formato inválido para date_collected. Use ISO 8601."}), 400
 
-        if date_collected <= datetime.utcnow():
-            return jsonify({"error": "date_collected deve ser uma data futura."}), 400
-        
+            if date_collected <= datetime.utcnow():
+                return jsonify({"error": "date_collected deve ser uma data futura."}), 400
+
         driver_id = data.get('driver_id')
         if driver_id:
             driver = DriverModel.query.get(driver_id)
             if not driver:
                 return jsonify({"error": "Driver not found"}), 404
-        
+
         new_solicitation = SolicitationModel(
             client_id=data['client_id'],
             status=status_value,
