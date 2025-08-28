@@ -114,6 +114,7 @@ def login_driver():
         token_payload = {
             'id': driver.id,
             'cnh': driver.cnh,
+            'name': driver.name,
             'role': 'driver',
             'exp': datetime.utcnow() + timedelta(days=1)
         }

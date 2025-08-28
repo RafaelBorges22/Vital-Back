@@ -161,6 +161,51 @@ def delete_solicitation(solicitation_id):
         return jsonify({"error": str(e)}), 500
 
 
+#GET baseado no id de um motorista
+from flask import Blueprint, request, jsonify
+from models.SolicitationModel import SolicitationModel
+from models.DriverModel import DriverModel 
+from enums.SolicitationEnum import SolicitationEnum
+from service.EmailService import EmailService
+from database.db import db
+from datetime import datetime
+
+solicitation_blueprint = Blueprint('solicitation', __name__)
+email_service = EmailService()
+
+@solicitation_blueprint.route('/', methods=['GET'])
+def read_solicitations():
+    try:
+        driver_id = request.args.get('driver_id', type=int)
+        
+        query = SolicitationModel.query
+        
+        if driver_id:
+            query = query.filter_by(driver_id=driver_id)
+        
+        solicitations = query.all()
+        
+        solicitation_list = [{
+            'id': s.id,
+            'client_name': s.client.name if s.client else None,
+            'client_cnpj': s.client.cnpj if s.client else None, 
+            'client_adress': s.client.address if s.client else None,
+            'status': s.status,
+            'description': s.description,
+            'date_solicitation': s.date_solicitation.isoformat(),
+            'date_collected': s.date_collected.isoformat() if s.date_collected else None,
+            'driver_id': s.driver_id,
+            'driver_name': s.driver.name if s.driver else 'Motorista pendente' 
+        } for s in solicitations]
+
+        return jsonify({
+            "success": True,
+            "data": solicitation_list,
+            "count": len(solicitation_list)
+        }), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 
 
 
