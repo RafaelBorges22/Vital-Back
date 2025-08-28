@@ -162,14 +162,6 @@ def delete_solicitation(solicitation_id):
 
 
 #GET baseado no id de um motorista
-from flask import Blueprint, request, jsonify
-from models.SolicitationModel import SolicitationModel
-from models.DriverModel import DriverModel 
-from enums.SolicitationEnum import SolicitationEnum
-from service.EmailService import EmailService
-from database.db import db
-from datetime import datetime
-
 solicitation_blueprint = Blueprint('solicitation', __name__)
 email_service = EmailService()
 
