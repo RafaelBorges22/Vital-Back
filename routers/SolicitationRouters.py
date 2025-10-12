@@ -34,7 +34,7 @@ def read_solicitations():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@solicitation_blueprint.route('/', methods=['POST', 'OPTIONS'])
+@solicitation_blueprint.route('', methods=['POST', 'OPTIONS'])
 def create_solicitation():
     if request.method == 'OPTIONS':
         return jsonify({"message": "Preflight OK"}), 200
