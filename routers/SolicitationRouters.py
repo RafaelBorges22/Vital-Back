@@ -6,7 +6,7 @@ from service.EmailService import EmailService
 from database.db import db
 from datetime import datetime
 
-solicitation_blueprint = Blueprint('solicitation', __name__)
+solicitation_blueprint = Blueprint('solicitations', __name__)
 email_service = EmailService()
 
 @solicitation_blueprint.route('/', methods=['GET'])
@@ -34,7 +34,7 @@ def read_solicitations():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@solicitation_blueprint.route('', methods=['POST', 'OPTIONS'])
+@solicitation_blueprint.route('/', methods=['POST', 'OPTIONS'])
 def create_solicitation():
     if request.method == 'OPTIONS':
         return jsonify({"message": "Preflight OK"}), 200
@@ -161,14 +161,10 @@ def delete_solicitation(solicitation_id):
         return jsonify({"error": str(e)}), 500
 
 
-#GET baseado no id de um motorista
-solicitation_blueprint = Blueprint('solicitation', __name__)
-email_service = EmailService()
-
 @solicitation_blueprint.route('/', methods=['GET'])
-def read_solicitations():
+def read_solicitations_driver():
     try:
-        driver_id = request.args.get('driver_id', type=int)
+        driver_id = request.args.get('driver_id', type=int) 
         
         query = SolicitationModel.query
         
@@ -197,7 +193,6 @@ def read_solicitations():
         }), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
 
 
 
