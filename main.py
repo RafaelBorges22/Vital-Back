@@ -2,7 +2,6 @@ from flask import Flask
 from database.db import db
 from routers.ClientRouters import client_blueprint
 from routers.ProductRouters import product_blueprint
-from routers.StockRouters import stock_blueprint 
 from routers.AdminRouters import admin_blueprint 
 from routers.EmailRouters import email_blueprint
 from routers.DriverRouters import driver_blueprint
@@ -26,7 +25,6 @@ db.init_app(app)
 # Registrar blueprints
 app.register_blueprint(client_blueprint, url_prefix = "/clients")
 app.register_blueprint(product_blueprint, url_prefix = "/products")
-app.register_blueprint(stock_blueprint, url_prefix = "/stocks")
 app.register_blueprint(admin_blueprint, url_prefix = "/admins")
 app.register_blueprint(email_blueprint, url_prefix = "/email")
 app.register_blueprint(driver_blueprint, url_prefix = "/drivers")
@@ -34,5 +32,6 @@ app.register_blueprint(solicitation_blueprint, url_prefix = "/solicitations")
 
 if __name__ == '__main__':
     with app.app_context():
+        db.drop_all()
         db.create_all()
     app.run(debug=True)

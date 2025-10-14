@@ -1,155 +1,127 @@
 from flask import Blueprint, request, jsonify
 from models.SolicitationModel import SolicitationModel
-from models.DriverModel import DriverModel  
 from enums.SolicitationEnum import SolicitationEnum
-from service.EmailService import EmailService
 from database.db import db
 from datetime import datetime
 
 solicitation_blueprint = Blueprint('solicitations', __name__)
-email_service = EmailService()
 
 @solicitation_blueprint.route('/', methods=['GET'])
-def read_solicitations():
-    try:
-        solicitations = SolicitationModel.query.all()
-        solicitation_list = [{
-            'id': s.id,
-            'client_name': s.client.name if s.client else None,
-            'client_cnpj': s.client.cnpj if s.client else None, 
-            'client_adress': s.client.address if s.client else None,
-            'status': s.status,
-            'description': s.description,
-            'date_solicitation': s.date_solicitation.isoformat(),
-            'date_collected': s.date_collected.isoformat() if s.date_collected else None,
-            'driver_id': s.driver_id,
-            'driver_name': s.driver.name if s.driver else 'Motorista pendente' 
-        } for s in solicitations]
+def get_all_solicitations():
+    solicitations = SolicitationModel.query.all()
+    result = [{
+        'id': s.id,
+        'surplus': s.surplus,
+        'loaded': s.loaded,
+        'total': s.total,
+        'delivered': s.delivered,
+        'surplus2': s.surplus2,
+        'notes': s.notes,
+        'difference': s.difference,
+        'client_id': s.client_id,
+        'client_name': s.client_name,
+        'status': s.status,
+        'payment_method': s.payment_method,
+        'description': s.description,
+        'date_solicitation': s.date_solicitation.isoformat(),
+        'date_collected': s.date_collected.isoformat() if s.date_collected else None,
+        'driver_id': s.driver_id,
+        'driver_name': s.driver_name
+    } for s in solicitations]
 
-        return jsonify({
-            "success": True,
-            "data": solicitation_list,
-            "count": len(solicitation_list)
-        }), 200
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+    return jsonify(result), 200
 
-@solicitation_blueprint.route('/', methods=['POST', 'OPTIONS'])
+
+@solicitation_blueprint.route('/', methods=['POST'])
 def create_solicitation():
-    if request.method == 'OPTIONS':
-        return jsonify({"message": "Preflight OK"}), 200
-
     data = request.get_json()
+    required = ['date_collected', 'description', 'payment_method', 'client_id'] 
+
+
+    for field in required:
+        if field not in data:
+            return jsonify({"error": f"Missing field: {field}"}), 400
+
     try:
-        required_fields = ['client_id', 'description']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({"error": f"Missing field: {field}"}), 400
-
-        status_value = SolicitationEnum.PENDING.value
-
-        date_collected = None
-        if 'date_collected' in data and data['date_collected']:
-            try:
-                date_collected = datetime.fromisoformat(data['date_collected'])
-            except ValueError:
-                return jsonify({"error": "Formato inválido para date_collected. Use ISO 8601."}), 400
-
-            if date_collected <= datetime.utcnow():
-                return jsonify({"error": "date_collected deve ser uma data futura."}), 400
-
-        driver_id = data.get('driver_id')
-        if driver_id:
-            driver = DriverModel.query.get(driver_id)
-            if not driver:
-                return jsonify({"error": "Driver not found"}), 404
-
         new_solicitation = SolicitationModel(
+            surplus=data['surplus'],
+            loaded=data['loaded'],
+            total=data['total'],
+            delivered=data['delivered'],
+            surplus2=data['surplus2'],
+            notes=data.get('notes'),
+            difference=data['difference'],
             client_id=data['client_id'],
-            status=status_value,
-            description=data['description'],
-            date_collected=date_collected,
-            driver_id=driver_id 
+            status=data.get('status', SolicitationEnum.PENDING.value),
+            payment_method=data['payment_method'],
+            description=data.get('description'),
+            date_collected=datetime.fromisoformat(data['date_collected']) if data.get('date_collected') else None,
+            driver_id=data.get('driver_id')
         )
 
         db.session.add(new_solicitation)
         db.session.commit()
-
         return jsonify({"message": "Solicitation created successfully", "id": new_solicitation.id}), 201
-
     except Exception as e:
+        db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
-@solicitation_blueprint.route('/<int:solicitation_id>', methods=['GET'])
-def read_solicitation(solicitation_id):
-    solicitation = SolicitationModel.query.get(solicitation_id)
-    if not solicitation:
+
+@solicitation_blueprint.route('/<int:id>', methods=['GET'])
+def get_solicitation(id):
+    s = SolicitationModel.query.get(id)
+    if not s:
         return jsonify({"error": "Solicitation not found"}), 404
 
     return jsonify({
-        'id': solicitation.id,
-        'client_id': solicitation.client_id,
-        'client_name': solicitation.client.name if solicitation.client else None,
-        'client_adress': solicitation.client.address if solicitation.client else None,
-        'status': solicitation.status,
-        'description': solicitation.description,
-        'date_solicitation': solicitation.date_solicitation.isoformat(),
-        'date_collected': solicitation.date_collected.isoformat() if solicitation.date_collected else None,
-        'driver_id': solicitation.driver_id,
-        'driver_name': solicitation.driver.name if solicitation.driver else 'Motorista pendente' 
+        'id': s.id,
+        'surplus': s.surplus,
+        'loaded': s.loaded,
+        'total': s.total,
+        'delivered': s.delivered,
+        'surplus2': s.surplus2,
+        'notes': s.notes,
+        'difference': s.difference,
+        'client_id': s.client_id,
+        'client_name': s.client_name,
+        'status': s.status,
+        'description': s.description,
+        'date_solicitation': s.date_solicitation.isoformat(),
+        'date_collected': s.date_collected.isoformat() if s.date_collected else None,
+        'driver_id': s.driver_id,
+        'driver_name': s.driver_name
     }), 200
 
-@solicitation_blueprint.route('/<int:solicitation_id>', methods=['PUT'])
-def update_solicitation(solicitation_id):
-    solicitation = SolicitationModel.query.get_or_404(solicitation_id)
+
+@solicitation_blueprint.route('/<int:id>', methods=['PUT'])
+def update_solicitation(id):
+    solicitation = SolicitationModel.query.get(id)
+    if not solicitation:
+        return jsonify({"error": "Solicitation not found"}), 404
+
     data = request.get_json()
-    
     try:
-        old_status = solicitation.status
-        
-        if 'status' in data:
-            new_status = SolicitationEnum.from_status(data['status'])
-            solicitation.status = new_status
-            
-        if 'driver_id' in data:
-            solicitation.driver_id = data['driver_id']
-        
+        for field in [
+        'surplus', 'loaded', 'total', 'delivered', 'surplus2', 'notes', 
+        'difference', 'status', 'driver_id', 'description', 'payment_method', 'client_id', 'client_name', 'driver_name'
+    ]:
+
+            if field in data:
+                setattr(solicitation, field, data[field])
+
         if 'date_collected' in data:
-            if data['date_collected']:
-                solicitation.date_collected = datetime.fromisoformat(data['date_collected'])
-            else:
-                solicitation.date_collected = None
+            solicitation.date_collected = datetime.fromisoformat(data['date_collected']) if data['date_collected'] else None
 
         db.session.commit()
-
-        if old_status != SolicitationEnum.APPROVED.value and solicitation.status == SolicitationEnum.APPROVED.value:
-            try:
-                client_email = solicitation.client.email
-                subject = "Sua solicitação foi aprovada!"
-                content = f"Olá {solicitation.client.name},\n\n" \
-                          f"Sua solicitação de coleta foi aprovada e está em andamento. " \
-                          f"Agradeçemos pela confiança em nosso serviço.\n\n" \
-                          f"Atenciosamente,\n" \
-                          f"A equipe Vital."
-                
-                email_service.send_email(to_email=client_email, subject=subject, content=content)
-                print(f"E-mail de aprovação enviado para {client_email}.")
-            except Exception as email_e:
-                print(f"Erro ao enviar e-mail de aprovação para o cliente {solicitation.client.id}: {str(email_e)}")
-
-        return jsonify({"message": f"Solicitação {solicitation_id} atualizada com sucesso."}), 200
-        
-    except ValueError as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"message": "Solicitation updated successfully"}), 200
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": "Ocorreu um erro ao atualizar a solicitação."}), 500
+        return jsonify({"error": str(e)}), 500
 
 
-@solicitation_blueprint.route('/<int:solicitation_id>', methods=['DELETE'])
-def delete_solicitation(solicitation_id):
-    solicitation = SolicitationModel.query.get(solicitation_id)
+@solicitation_blueprint.route('/<int:id>', methods=['DELETE'])
+def delete_solicitation(id):
+    solicitation = SolicitationModel.query.get(id)
     if not solicitation:
         return jsonify({"error": "Solicitation not found"}), 404
 
@@ -158,42 +130,5 @@ def delete_solicitation(solicitation_id):
         db.session.commit()
         return jsonify({"message": "Solicitation deleted successfully"}), 200
     except Exception as e:
+        db.session.rollback()
         return jsonify({"error": str(e)}), 500
-
-
-@solicitation_blueprint.route('/', methods=['GET'])
-def read_solicitations_driver():
-    try:
-        driver_id = request.args.get('driver_id', type=int) 
-        
-        query = SolicitationModel.query
-        
-        if driver_id:
-            query = query.filter_by(driver_id=driver_id)
-        
-        solicitations = query.all()
-        
-        solicitation_list = [{
-            'id': s.id,
-            'client_name': s.client.name if s.client else None,
-            'client_cnpj': s.client.cnpj if s.client else None, 
-            'client_adress': s.client.address if s.client else None,
-            'status': s.status,
-            'description': s.description,
-            'date_solicitation': s.date_solicitation.isoformat(),
-            'date_collected': s.date_collected.isoformat() if s.date_collected else None,
-            'driver_id': s.driver_id,
-            'driver_name': s.driver.name if s.driver else 'Motorista pendente' 
-        } for s in solicitations]
-
-        return jsonify({
-            "success": True,
-            "data": solicitation_list,
-            "count": len(solicitation_list)
-        }), 200
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-
-
-
-

@@ -1,15 +1,15 @@
 from enum import Enum
 
 class ProductEnum(Enum):
-    BAIXA_QUANTIDADE = "Baixa quantidade"
-    MODERADO = "Moderado"
-    BOA_QUANTIDADE = "Boa quantidade"
+    CRITICO = 'Crítico'
+    NORMAL = 'Normal'
+    EXCESSO = 'Excesso'
 
     @staticmethod
     def from_quantity(quantity: int) -> str:
         if quantity <= 5:
-            return ProductEnum.BAIXA_QUANTIDADE.value
+            return ProductEnum.CRITICO.value
         elif 6 <= quantity <= 12:
-            return ProductEnum.MODERADO.value
+            return ProductEnum.NORMAL.value
         else:
-            return ProductEnum.BOA_QUANTIDADE.value
+            return ProductEnum.EXCESSO.value

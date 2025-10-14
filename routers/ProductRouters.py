@@ -1,60 +1,51 @@
 from flask import Blueprint, request, jsonify
 from models.ProductModel import ProductModel
-from models.StockModel import StockModel
 from database.db import db
-from enums.ProductEnum import ProductEnum
+
 product_blueprint = Blueprint('products', __name__)
 
 @product_blueprint.route('/', methods=['GET'])
 def read_products():
     products = ProductModel.query.all()
-    product_list = []
-    for product in products:
-        product_data = {
-            'id': product.id,
-            'name': product.name,
-            'description': product.description,
-            'price': product.price,
-            'image': product.image,
-            'quantity': product.quantity,
-            'stock_level': ProductEnum.from_quantity(product.quantity)
-        }
-        if product.stock:
-            product_data['stock'] = {
-                'id': product.stock.id,
-                'name': product.stock.name, 
-                'quantity_products': product.stock.quantity_products
-            }
-        product_list.append(product_data)
-    
-    return jsonify({"message": "Product list retrieved successfully", "products": product_list}), 200
+    product_list = [{
+        'id': p.id,
+        'name': p.name,
+        'min_stock': p.min_stock,
+        'med_stock': p.med_stock,
+        'saldo': p.saldo,
+        'price': p.price,
+        'value_total': p.value_total,
+        'situation': p.situation
+    } for p in products]
+
+    return jsonify(product_list), 200
+
 
 @product_blueprint.route('/', methods=['POST'])
 def create_product():
     data = request.get_json()
+    required_fields = ['name', 'min_stock', 'med_stock', 'saldo', 'price', 'value_total']
+
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"error": f"Missing field: {field}"}), 400
+
     try:
-        name = data['name']
-        description = data['description']
-        price = data['price']
-        image = data.get('image', '')
-        quantity = data.get('quantity', 0)
-        stock_id = data.get('stock_id')
-
-        new_product = ProductModel(
-            name=name,
-            description=description,
-            price=price,
-            image=image,
-            quantity=quantity,
-            stock_id=stock_id
+        product = ProductModel(
+            name=data['name'],
+            min_stock=data['min_stock'],
+            med_stock=data['med_stock'],
+            saldo=data['saldo'],
+            price=data['price'],
+            value_total=data['value_total'],
         )
-
-        db.session.add(new_product)
+        db.session.add(product)
         db.session.commit()
+        return jsonify({"message": "Product created successfully", "id": product.id}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
-        return jsonify({"message": "Product created successfully"}), 201
-    except KeyError as e:
-        return jsonify({"error": f"Missing field: {str(e)}"}), 400
 
 @product_blueprint.route('/<int:id>', methods=['GET'])
 def get_product(id):
@@ -62,22 +53,17 @@ def get_product(id):
     if not product:
         return jsonify({"error": "Product not found"}), 404
 
-    product_data = {
+    return jsonify({
         'id': product.id,
         'name': product.name,
-        'description': product.description,
+        'min_stock': product.min_stock,
+        'med_stock': product.med_stock,
+        'saldo': product.saldo,
         'price': product.price,
-        'image': product.image,
-        'quantity': product.quantity,
-        'stock_level': ProductEnum.from_quantity(product.quantity)
-    }
-    if product.stock:
-        product_data['stock'] = {
-            'id': product.stock.id,
-            'name': product.stock.name, 
-            'quantity_products': product.stock.quantity_products 
-        }
-    return jsonify({"product": product_data}), 200
+        'value_total': product.value_total,
+        'situation': product.situation
+    }), 200
+
 
 @product_blueprint.route('/<int:id>', methods=['PUT'])
 def update_product(id):
@@ -87,18 +73,16 @@ def update_product(id):
 
     data = request.get_json()
     try:
-        product.name = data.get('name', product.name)
-        product.description = data.get('description', product.description)
-        product.price = data.get('price', product.price)
-        product.image = data.get('image', product.image)
-        product.quantity = data.get('quantity', product.quantity)
-        product.stock_id = data.get('stock_id', product.stock_id)
+        for field in ['name', 'min_stock', 'med_stock', 'saldo', 'price', 'value_total', 'situation']:
+            if field in data:
+                setattr(product, field, data[field])
 
         db.session.commit()
-
         return jsonify({"message": "Product updated successfully"}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
 
 @product_blueprint.route('/<int:id>', methods=['DELETE'])
 def delete_product(id):
@@ -106,15 +90,10 @@ def delete_product(id):
     if not product:
         return jsonify({"error": "Product not found"}), 404
 
-    db.session.delete(product)
-    db.session.commit()
-
-    return jsonify({"message": "Product deleted successfully"}), 200
-
-@product_blueprint.route('/', methods=['OPTIONS'])
-def handle_options():
-    response = jsonify({})
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-    response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
-    return response, 204
+    try:
+        db.session.delete(product)
+        db.session.commit()
+        return jsonify({"message": "Product deleted successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
