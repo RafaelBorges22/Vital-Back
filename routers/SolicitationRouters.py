@@ -1,6 +1,9 @@
 from flask import Blueprint, request, jsonify
 from models.SolicitationModel import SolicitationModel
 from enums.SolicitationEnum import SolicitationEnum
+from enums.PaymentEnum import PaymentEnum
+from models.ClientModel import ClientModel
+from models.DriverModel import DriverModel
 from database.db import db
 from datetime import datetime
 
@@ -35,28 +38,55 @@ def get_all_solicitations():
 @solicitation_blueprint.route('/', methods=['POST'])
 def create_solicitation():
     data = request.get_json()
-    required = ['date_collected', 'description', 'payment_method', 'client_id'] 
-
+    required = ['client_id'] 
 
     for field in required:
         if field not in data:
             return jsonify({"error": f"Missing field: {field}"}), 400
 
+    client_id = data['client_id']
+    driver_id = data.get('driver_id')
+    
+    client = ClientModel.query.get(client_id)
+    if not client:
+        return jsonify({"error": f"Client with ID {client_id} not found"}), 404
+    client_name = client.name
+    
+    driver_name = None
+    if driver_id:
+        driver = DriverModel.query.get(driver_id)
+        if not driver:
+            return jsonify({"error": f"Driver with ID {driver_id} not found"}), 404
+        driver_name = driver.name
+
+
+    payment_method_input = data.get('payment_method', PaymentEnum.DINHEIRO.value)
+    try:
+        validated_payment_method = PaymentEnum.from_payment_method(payment_method_input)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
     try:
         new_solicitation = SolicitationModel(
-            surplus=data['surplus'],
-            loaded=data['loaded'],
-            total=data['total'],
-            delivered=data['delivered'],
-            surplus2=data['surplus2'],
+            surplus=data.get('surplus'),
+            loaded=data.get('loaded'),
+            total=data.get('total'),
+            delivered=data.get('delivered'),
+            surplus2=data.get('surplus2'),
             notes=data.get('notes'),
-            difference=data['difference'],
-            client_id=data['client_id'],
+            difference=data.get('difference'),
+            
+            client_id=client_id,
+            client_name=client_name, 
+            
             status=data.get('status', SolicitationEnum.PENDING.value),
-            payment_method=data['payment_method'],
+            payment_method=validated_payment_method,
             description=data.get('description'),
-            date_collected=datetime.fromisoformat(data['date_collected']) if data.get('date_collected') else None,
-            driver_id=data.get('driver_id')
+            
+            date_collected=datetime.fromisoformat(data['date_collected']) if data.get('date_collected') else None, 
+            
+            driver_id=driver_id,
+            driver_name=driver_name
         )
 
         db.session.add(new_solicitation)
@@ -85,6 +115,7 @@ def get_solicitation(id):
         'client_id': s.client_id,
         'client_name': s.client_name,
         'status': s.status,
+        'payment_method': s.payment_method,
         'description': s.description,
         'date_solicitation': s.date_solicitation.isoformat(),
         'date_collected': s.date_collected.isoformat() if s.date_collected else None,

@@ -6,10 +6,10 @@ class ProductEnum(Enum):
     EXCESSO = 'Excesso'
 
     @staticmethod
-    def from_quantity(quantity: int) -> str:
-        if quantity <= 5:
+    def from_quantity(saldo: int) -> str:
+        if saldo <= 5:
             return ProductEnum.CRITICO.value
-        elif 6 <= quantity <= 12:
+        elif 6 <= saldo <= 12:
             return ProductEnum.NORMAL.value
         else:
             return ProductEnum.EXCESSO.value
