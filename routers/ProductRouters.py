@@ -6,7 +6,7 @@ product_blueprint = Blueprint('products', __name__)
 
 @product_blueprint.route('/', methods=['GET'])
 def read_products():
-    products = ProductModel.query.all()
+    products = ProductModel.query.order_by(ProductModel.id.asc()).all()
     product_list = [{
         'id': p.id,
         'name': p.name,
@@ -21,10 +21,10 @@ def read_products():
     return jsonify(product_list), 200
 
 
-@product_blueprint.route('/', methods=['POST'])
+@product_blueprint.route('/', methods=['POST', "OPTIONS"])
 def create_product():
     data = request.get_json()
-    required_fields = ['name', 'min_stock', 'med_stock', 'saldo', 'price', 'value_total']
+    required_fields = ['name', 'min_stock', 'med_stock', 'saldo', 'price']
 
     for field in required_fields:
         if field not in data:
@@ -37,8 +37,8 @@ def create_product():
             med_stock=data['med_stock'],
             saldo=data['saldo'],
             price=data['price'],
-            value_total=data['value_total'],
         )
+        product.value_total = product.saldo * product.price
         db.session.add(product)
         db.session.commit()
         return jsonify({"message": "Product created successfully", "id": product.id}), 201
@@ -73,15 +73,17 @@ def update_product(id):
 
     data = request.get_json()
     try:
-        for field in ['name', 'min_stock', 'med_stock', 'saldo', 'price', 'value_total', 'situation']:
+        for field in ['name', 'min_stock', 'med_stock', 'saldo', 'price']:
             if field in data:
                 setattr(product, field, data[field])
 
+        product.value_total = product.saldo * product.price 
         db.session.commit()
         return jsonify({"message": "Product updated successfully"}), 200
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
 
 
 @product_blueprint.route('/<int:id>', methods=['DELETE'])
