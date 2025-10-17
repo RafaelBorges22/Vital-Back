@@ -12,6 +12,7 @@ class DriverModel(db.Model):
     vehicle_plate = db.Column(db.String(10), nullable=False)  
 
     solicitations = db.relationship('SolicitationModel', back_populates='driver', lazy=True)
+    reports = db.relationship('ReportModel', back_populates='driver')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

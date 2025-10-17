@@ -13,6 +13,9 @@ class ProductModel(db.Model):
     price = db.Column(db.Float, nullable=False)
     value_total = db.Column(db.Float, nullable=False)
 
+
+    reports = db.relationship('ReportModel', back_populates='product')
+
     @property
     def situation(self) -> str:
         return ProductEnum.from_quantity(self.saldo, self.min_stock, self.med_stock)
