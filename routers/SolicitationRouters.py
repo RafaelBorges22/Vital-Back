@@ -4,6 +4,7 @@ from enums.SolicitationEnum import SolicitationEnum
 from enums.PaymentEnum import PaymentEnum
 from models.ClientModel import ClientModel
 from models.DriverModel import DriverModel
+from service.EmailService import EmailService
 from database.db import db
 from datetime import datetime
 
@@ -126,28 +127,58 @@ def get_solicitation(id):
 
 @solicitation_blueprint.route('/<int:id>', methods=['PUT'])
 def update_solicitation(id):
+    from service.EmailService import EmailService 
+
     solicitation = SolicitationModel.query.get(id)
     if not solicitation:
         return jsonify({"error": "Solicitation not found"}), 404
 
     data = request.get_json()
+
     try:
         for field in [
-        'surplus', 'loaded', 'total', 'delivered', 'surplus2', 'notes', 
-        'difference', 'status', 'driver_id', 'description', 'payment_method', 'client_id', 'client_name', 'driver_name'
-    ]:
-
+            'surplus', 'loaded', 'total', 'delivered', 'surplus2', 'notes',
+            'difference', 'status', 'driver_id', 'description', 'payment_method',
+            'client_id', 'client_name', 'driver_name'
+        ]:
             if field in data:
                 setattr(solicitation, field, data[field])
 
         if 'date_collected' in data:
-            solicitation.date_collected = datetime.fromisoformat(data['date_collected']) if data['date_collected'] else None
+            solicitation.date_collected = (
+                datetime.fromisoformat(data['date_collected'])
+                if data['date_collected']
+                else None
+            )
 
         db.session.commit()
+        if data.get("status", "").upper() == "APROVADO":
+            try:
+                client = ClientModel.query.get(solicitation.client_id)
+                if client and client.email:
+                    email_service = EmailService()
+                    subject = f"Solicitação #{solicitation.id} Aprovada ✅"
+                    content = (
+                        f"Olá {client.name},\n\n"
+                        f"Sua solicitação de coleta foi aprovada com sucesso!\n"
+                        f"Descrição: {solicitation.description or 'Sem descrição'}\n"
+                        f"Data da coleta: {solicitation.date_collected.strftime('%d/%m/%Y')}\n\n"
+                        f"Caso não possa nos receber no dia agendado entrar com contato com vitalreciclagem@gmail.com.\n\n"
+                        f"Atenciosamente,\nEquipe Vital Reciclagem"
+                    )
+                    email_service.send_email(client.email, subject, content)
+                    print(f"Email de aprovação enviado para {client.email}")
+                else:
+                    print("Cliente sem e-mail cadastrado. Nenhum e-mail enviado.")
+            except Exception as e:
+                print(f"Erro ao enviar e-mail de aprovação: {e}")
+
         return jsonify({"message": "Solicitation updated successfully"}), 200
+
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
 
 
 @solicitation_blueprint.route('/<int:id>', methods=['DELETE'])
