@@ -163,3 +163,22 @@ def delete_solicitation(id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
+@solicitation_blueprint.route('/clients/<int:client_id>', methods=['GET'])
+def get_solicitations_by_client(client_id):
+    solicitations = SolicitationModel.query.filter_by(client_id=client_id).all()
+    result = [{
+        'id': s.id,
+        'notes': s.notes,
+        'client_id': s.client_id,
+        'client_name': s.client_name,
+        'status': s.status,
+        'payment_method': s.payment_method,
+        'description': s.description,
+        'date_solicitation': s.date_solicitation.isoformat(),
+        'date_collected': s.date_collected.isoformat() if s.date_collected else None,
+        'driver_id': s.driver_id,
+        'driver_name': s.driver_name
+    } for s in solicitations]
+
+    return jsonify(result), 200
